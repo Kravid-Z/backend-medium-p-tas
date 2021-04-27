@@ -7,7 +7,7 @@ const articlesRouter = express.Router()
 articlesRouter.get("/", async (req, res, next) => {
   try {
     const articles = await articlesModel.find()
-    res.send(articles)
+    res.status(200).send(articles)
   } catch (error) {
     next(error)
   }
@@ -15,10 +15,9 @@ articlesRouter.get("/", async (req, res, next) => {
 
 articlesRouter.get("/:id", async (req, res, next) => {
   try {
-    const id = req.params.id
-    const article = await articlesModel.findById(id)
+    const article = await articlesModel.findById(req.params.id)
     if (article) {
-      res.send(article)
+      res.status(200).send(article)
     } else {
       const error = new Error()
       error.statusCode = 404
@@ -26,7 +25,7 @@ articlesRouter.get("/:id", async (req, res, next) => {
     }
   } catch (error) {
     console.log(error)
-    next("While reading articles list a problem occurred!")
+    next("While reading articles list a problem occurred!",error)
   }
 })
 
@@ -63,7 +62,7 @@ articlesRouter.delete("/:id", async (req, res, next) => {
   try {
     const article = await articlesModel.findByIdAndDelete(req.params.id)
     if (article) {
-      res.send("Deleted")
+      res.status(204).send("Deleted")
     } else {
       const error = new Error(`Article with id ${req.params.id} not found`)
       error.statusCode = 404
