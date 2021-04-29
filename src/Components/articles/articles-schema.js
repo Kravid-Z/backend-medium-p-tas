@@ -31,7 +31,7 @@ const articlesSchema = new Schema(
       required: true,
     },
     category: {
-      name: { type: String },
+      name: { type: String, enum: ["horror", "romance", "fantasy", "history", "IT"] },
       img: { type: String },
     },
     author: [{ type: Schema.Types.ObjectId, required: true, ref: "Authors" }],
