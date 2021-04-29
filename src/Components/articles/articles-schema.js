@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import reviewsSchema from "./reviews-schema.js";
 
 const { Schema, model } = mongoose;
 
@@ -25,6 +26,7 @@ const articlesSchema = new Schema(
       img: { type: String },
     },
     cover: { type: String },
+    reviews: [reviewsSchema],
   },
   { timestamps: true }
 );
