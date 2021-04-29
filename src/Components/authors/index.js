@@ -1,6 +1,6 @@
 import express from "express";
-import q2m from 'query-to-mongo';
-import mongoose from 'mongoose';
+import q2m from "query-to-mongo";
+import mongoose from "mongoose";
 import AuthorsModel from "./authors-schema.js";
 
 // const cloudinaryStorage = new CloudinaryStorage({
@@ -18,7 +18,7 @@ const authorsRouter = express.Router();
 //GET all authors
 authorsRouter.get("/", async (req, res, next) => {
   try {
-    const authors = await AuthorsModel.find();
+    const authors = await AuthorsModel.find().populate("articles");
     res.status(200).send(authors);
   } catch (error) {
     next(error);
@@ -102,6 +102,5 @@ authorsRouter.delete("/:id", async (req, res, next) => {
     next(error);
   }
 });
-
 
 export default authorsRouter;

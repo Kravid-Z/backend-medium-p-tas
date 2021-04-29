@@ -2,7 +2,7 @@ import express from "express";
 import q2m from 'query-to-mongo';
 import mongoose from 'mongoose';
 import articlesModel from "./articles-schema.js";
-
+import authorsModel from '../authors/authors-schema.js'
 // const cloudinaryStorage = new CloudinaryStorage({
 //     cloudinary: v2,
 //     params: {
@@ -18,7 +18,7 @@ const articlesRouter = express.Router();
 //GET all articles
 articlesRouter.get("/", async (req, res, next) => {
   try {
-    const articles = await articlesModel.find();
+    const articles = await articlesModel.find().populate("author");
     res.status(200).send(articles);
   } catch (error) {
     next(error);
@@ -46,6 +46,7 @@ articlesRouter.post("/", async (req, res, next) => {
   try {
     const newArticle = new articlesModel(req.body);
     const { _id } = await newArticle.save();
+    await authorsModel.findByIdAndUpdate(req.body.author, {articles:_id})
 
     res.status(201).send(_id);
   } catch (error) {
