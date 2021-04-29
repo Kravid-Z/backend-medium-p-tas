@@ -21,10 +21,7 @@ const articlesSchema = new Schema(
       name: { type: String },
       img: { type: String },
     },
-    author: {
-      name: { type: String },
-      img: { type: String },
-    },
+    author: [{ type: Schema.Types.ObjectId, required: true, ref: "Authors" }],
     cover: { type: String },
     reviews: [reviewsSchema],
   },
