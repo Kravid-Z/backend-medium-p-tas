@@ -1,7 +1,20 @@
 import mongoose from "mongoose";
-import reviewsSchema from "./reviews-schema.js";
 
 const { Schema, model } = mongoose;
+
+const reviewsSchema = new Schema(
+  {
+    text: {
+      type: String,
+      required: true,
+    },
+    user: {
+      type: String,
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
 
 const articlesSchema = new Schema(
   {
