@@ -1,31 +1,28 @@
 import express from "express";
 import listEndpoints from "express-list-endpoints";
 import mongoose from "mongoose";
-import articlesRouter from "./Components/articles/index.js";
-import authorsRouter from "./Components/authors/index.js";
-import { notFoundErrorHandler,
-    badRequestErrorHandler,
-    forbiddenErrorHandler,
-    catchAllErrorsHandler,} from "./Common/errorHandlerGeneral.js";
+import mainRouter from "./Routes/index.js";
+import {
+  notFoundErrorHandler,
+  badRequestErrorHandler,
+  forbiddenErrorHandler,
+  catchAllErrorsHandler,
+  unauthorizedErrorHandler,
+} from "./Common/errorHandlerGeneral.js";
 
 const server = express();
 const port = process.env.PORT || 5000;
 
 server.use(express.json());
 
-server.use("/articles", articlesRouter);
-server.use("/authors", authorsRouter);
-
+server.use("/medium", mainRouter);
 
 //GENERAL ERRORS
 server.use(notFoundErrorHandler);
 server.use(badRequestErrorHandler);
+server.use(unauthorizedErrorHandler);
 server.use(forbiddenErrorHandler);
 server.use(catchAllErrorsHandler);
-
-
-
-console.log(listEndpoints(server));
 
 mongoose
   .connect(process.env.MONGODB_CONNECTION, {
@@ -35,7 +32,15 @@ mongoose
   })
   .then(
     server.listen(port, () => {
-      console.log("Running on port", port);
+      console.table(listEndpoints(server));
+      console.log(
+        "\u001b[" +
+          35 +
+          "m" +
+          "Server is running on port: " +
+          port +
+          "\u001b[0m"
+      );
     })
   )
   .catch((err) => console.log(err));

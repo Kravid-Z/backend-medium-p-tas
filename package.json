@@ -21,6 +21,8 @@
   "homepage": "https://github.com/Kravid-Z/backend-medium-p-tas#readme",
   "dependencies": {
     "@sendgrid/mail": "^7.4.2",
+    "atob": "^2.1.2",
+    "bcrypt": "^5.0.1",
     "cloudinary": "^1.25.1",
     "express": "^4.17.1",
     "express-list-endpoints": "^5.0.0",
