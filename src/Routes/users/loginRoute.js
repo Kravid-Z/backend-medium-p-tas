@@ -19,7 +19,7 @@ loginAndRefreshRouter.post("/refreshToken", async (req, res, next) => {
   const oldRefreshToken = req.body.refreshToken;
   if (!oldRefreshToken) {
     const err = new Error("Refresh token missing");
-    err.httpStatusCode = 400;
+    err.statusCode = 400;
     next(err);
   } else {
     try {
@@ -28,7 +28,7 @@ loginAndRefreshRouter.post("/refreshToken", async (req, res, next) => {
     } catch (error) {
       console.log(error);
       const err = new Error(error);
-      err.httpStatusCode = 401;
+      err.statusCode = 401;
       next(err);
     }
   }

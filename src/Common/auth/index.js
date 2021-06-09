@@ -49,7 +49,7 @@ export const jwtAuthMiddleware = async (req, res, next) => {
   } catch (e) {
     console.log(e)
     const err = new Error("Please authenticate")
-    err.httpStatusCode = 401
+    err.statusCode = 401
     next(err)
   }
 }
