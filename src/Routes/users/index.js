@@ -1,11 +1,11 @@
 import express from "express"
 import UserModel from "./userModel.js"
-import { basicAuthMiddleware} from "../../Common/auth/index.js"
+import { jwtAuthMiddleware} from "../../Common/auth/index.js"
 
 const usersRouter = express.Router()
 
 
-usersRouter.get("/me", basicAuthMiddleware, async (req, res, next) => {
+usersRouter.get("/",jwtAuthMiddleware ,async (req, res, next) => {
   try {
     res.send(req.user)
   } catch (error) {
@@ -13,7 +13,7 @@ usersRouter.get("/me", basicAuthMiddleware, async (req, res, next) => {
   }
 })
 
-usersRouter.delete("/me", basicAuthMiddleware, async (req, res, next) => {
+usersRouter.delete("/",jwtAuthMiddleware ,async (req, res, next) => {
   try {
     await req.user.deleteOne()
     res.status(204).send()
@@ -22,7 +22,7 @@ usersRouter.delete("/me", basicAuthMiddleware, async (req, res, next) => {
   }
 })
 
-usersRouter.put("/me", basicAuthMiddleware, async (req, res, next) => {
+usersRouter.put("/",jwtAuthMiddleware ,async (req, res, next) => {
   try {
     console.log(req.body)
 

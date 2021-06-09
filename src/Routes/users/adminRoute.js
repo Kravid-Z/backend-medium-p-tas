@@ -1,11 +1,12 @@
 import express from "express"
 import UserModel from "./userModel.js"
-import { basicAuthMiddleware, adminOnly } from "../../Common/auth/index.js"
+import articlesModel from "../articles/articles-schema.js";
+import { jwtAuthMiddleware, adminOnly } from "../../Common/auth/index.js"
 
 const adminsRouter = express.Router()
 
 
-adminsRouter.get("/", basicAuthMiddleware, adminOnly, async (req, res, next) => {
+adminsRouter.get("/", jwtAuthMiddleware, adminOnly, async (req, res, next) => {
   try {
     const users = await UserModel.find()
     res.send(users)
@@ -13,5 +14,17 @@ adminsRouter.get("/", basicAuthMiddleware, adminOnly, async (req, res, next) => 
     next(error)
   }
 })
+
+//  ARTICLES ADMIN ROUTES *******-------->>>>*<<<<--------******
+
+//GET all articles
+adminsRouter.get("/",jwtAuthMiddleware, adminOnly, async (req, res, next) => {
+    try {
+      const articles = await articlesModel.find().populate("author");
+      res.status(200).send(articles);
+    } catch (error) {
+      next(error);
+    }
+  });
 
 export default adminsRouter

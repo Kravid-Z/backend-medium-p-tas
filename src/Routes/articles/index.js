@@ -1,8 +1,9 @@
 import express from "express";
-import q2m from 'query-to-mongo';
-import mongoose from 'mongoose';
+import q2m from "query-to-mongo";
+import mongoose from "mongoose";
 import articlesModel from "./articles-schema.js";
-import authorsModel from '../authors/authors-schema.js'
+import authorsModel from "../authors/authors-schema.js";
+import { jwtAuthMiddleware } from "../../Common/auth/index.js";
 // const cloudinaryStorage = new CloudinaryStorage({
 //     cloudinary: v2,
 //     params: {
@@ -16,7 +17,7 @@ const articlesRouter = express.Router();
 //  ARTICLES ROUTES *******-------->>>>*<<<<--------******
 
 //GET all articles
-articlesRouter.get("/", async (req, res, next) => {
+articlesRouter.get("/", jwtAuthMiddleware, async (req, res, next) => {
   try {
     const articles = await articlesModel.find().populate("author");
     res.status(200).send(articles);
@@ -25,7 +26,7 @@ articlesRouter.get("/", async (req, res, next) => {
   }
 });
 //GET article BY ID
-articlesRouter.get("/:id", async (req, res, next) => {
+articlesRouter.get("/:id", jwtAuthMiddleware, async (req, res, next) => {
   try {
     const article = await articlesModel.findById(req.params.id);
     if (article) {
@@ -42,11 +43,11 @@ articlesRouter.get("/:id", async (req, res, next) => {
 });
 
 //POST new article
-articlesRouter.post("/", async (req, res, next) => {
+articlesRouter.post("/", jwtAuthMiddleware, async (req, res, next) => {
   try {
     const newArticle = new articlesModel(req.body);
     const { _id } = await newArticle.save();
-    await authorsModel.findByIdAndUpdate(req.body.author, {articles:_id})
+    await authorsModel.findByIdAndUpdate(req.body.author, { articles: _id });
 
     res.status(201).send(_id);
   } catch (error) {
@@ -55,7 +56,7 @@ articlesRouter.post("/", async (req, res, next) => {
 });
 
 //POST IMG for article
-articlesRouter.post("/upload", async (req, res, next) => {
+articlesRouter.post("/upload", jwtAuthMiddleware, async (req, res, next) => {
   // try {
   //   const newArticle = new articlesModel(req.body)
   //   const { _id } = await newArticle.save()
@@ -66,7 +67,7 @@ articlesRouter.post("/upload", async (req, res, next) => {
 });
 
 //PUT edit article
-articlesRouter.put("/:id", async (req, res, next) => {
+articlesRouter.put("/:id", jwtAuthMiddleware, async (req, res, next) => {
   try {
     const article = await articlesModel.findByIdAndUpdate(
       req.params.id,
@@ -89,7 +90,7 @@ articlesRouter.put("/:id", async (req, res, next) => {
 });
 
 //DELETE article
-articlesRouter.delete("/:id", async (req, res, next) => {
+articlesRouter.delete("/:id", jwtAuthMiddleware, async (req, res, next) => {
   try {
     const article = await articlesModel.findByIdAndDelete(req.params.id);
     if (article) {
@@ -107,122 +108,147 @@ articlesRouter.delete("/:id", async (req, res, next) => {
 //  /ARTICLES/REVIEWS ROUTES *******-------->>>>*<<<<--------******
 
 //GET all reviews for specific article
-articlesRouter.get("/:id/reviews", async (req, res, next) => {
-  try {
-    const reviews = await articlesModel.findById(req.params.id, {
-      reviews: 1,
-    });
-    if (reviews) {
-      res.status(200).send(reviews);
-    } else {
-      const error = new Error(
-        `not Reviews for this article with id ${req.params.id}`
-      );
-      error.statusCode = 404;
+articlesRouter.get(
+  "/:id/reviews",
+  jwtAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const reviews = await articlesModel.findById(req.params.id, {
+        reviews: 1,
+      });
+      if (reviews) {
+        res.status(200).send(reviews);
+      } else {
+        const error = new Error(
+          `not Reviews for this article with id ${req.params.id}`
+        );
+        error.statusCode = 404;
+        next(error);
+      }
+    } catch (error) {
+      console.log(error);
       next(error);
     }
-  } catch (error) {
-    console.log(error);
-    next(error);
   }
-});
+);
 //GET review by ID for specific article
-articlesRouter.get("/:id/reviews/:reviewID", async (req, res, next) => {
-  try {
-    const { reviews } = await articlesModel.findOne(
-      { _id: mongoose.Types.ObjectId(req.params.id) }, 
-      // Here^ I need to use mongoose.Types.ObjectId(req.params.id) from mongoose to parse this string in params to type object_id in mongoDB
-      { reviews: {
-          $elemMatch: { _id: mongoose.Types.ObjectId(req.params.reviewID) },
-        },
-      }
-    );
-    if (reviews && reviews.length > 0 ) {
-      res.status(200).send(reviews[0])
-    } else {
-      const error = new Error(
-        `review with id ${req.params.reviewID} not found`
+articlesRouter.get(
+  "/:id/reviews/:reviewID",
+  jwtAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const { reviews } = await articlesModel.findOne(
+        { _id: mongoose.Types.ObjectId(req.params.id) },
+        // Here^ I need to use mongoose.Types.ObjectId(req.params.id) from mongoose to parse this string in params to type object_id in mongoDB
+        {
+          reviews: {
+            $elemMatch: { _id: mongoose.Types.ObjectId(req.params.reviewID) },
+          },
+        }
       );
-      error.statusCode = 404;
+      if (reviews && reviews.length > 0) {
+        res.status(200).send(reviews[0]);
+      } else {
+        const error = new Error(
+          `review with id ${req.params.reviewID} not found`
+        );
+        error.statusCode = 404;
+        next(error);
+      }
+    } catch (error) {
+      console.log(error);
       next(error);
     }
-  } catch (error) {
-    console.log(error);
-    next(error);
   }
-});
+);
 //POST new review
-articlesRouter.post("/:id/reviews", async (req, res, next) => {
-  try {
-    const newReview = req.body;
-    const updatedArticles = await articlesModel.findByIdAndUpdate(
-      req.params.id,
-      { $push: {
-          reviews: newReview,
+articlesRouter.post(
+  "/:id/reviews",
+  jwtAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const newReview = req.body;
+      const updatedArticles = await articlesModel.findByIdAndUpdate(
+        req.params.id,
+        {
+          $push: {
+            reviews: newReview,
+          },
         },
-      },
-      { runValidators: true, new: true, projection: { reviews: 1 } }
-    );
-    if (updatedArticles) {
-      res.status(201).send({message: "new review in this article", data: updatedArticles})
-    } else {
-      const error = new Error(
-        `error in post new review`
+        { runValidators: true, new: true, projection: { reviews: 1 } }
       );
-      error.statusCode = 400;
+      if (updatedArticles) {
+        res
+          .status(201)
+          .send({
+            message: "new review in this article",
+            data: updatedArticles,
+          });
+      } else {
+        const error = new Error(`error in post new review`);
+        error.statusCode = 400;
+        next(error);
+      }
+    } catch (error) {
+      console.log(error);
       next(error);
     }
-  } catch (error) {
-    console.log(error);
-    next(error);
   }
-});
+);
 //PUT edit review
-articlesRouter.put("/:id/reviews/:reviewID", async (req, res, next) => {
-  try {
-    const modifiedReview = await articlesModel.findOneAndUpdate(
-      {
-        _id: mongoose.Types.ObjectId(req.params.id),
-        "reviews._id": mongoose.Types.ObjectId(req.params.reviewID),
-      },
-      { $set: { "reviews.$": req.body } }, // $<-- THIS IS A PLACEHOLDER FOR INDEX IN ARRAYS; The concept of the $ is pretty similar as having something like const $ = array.findIndex(el => el._id === req.params.reviewID)
-      {
-        runValidators: true,
-        new: true,
-      }
-    )
-
-    if (modifiedReview) {
-      res.status(200).send(modifiedReview)
-    } else {
-      const error = new Error()
-      error.statusCode = 400
-      next(error)
-    }
-  } catch (error) {
-    console.log(error);
-    next(error);
-  }
-});
-//DELETE review
-articlesRouter.delete("/:id/reviews/:reviewID", async (req, res, next) => {
-  try {
-    const modifiedArticle = await articlesModel.findByIdAndUpdate(
-      req.params.id,
-      {
-        $pull: {
-          reviews: { _id: mongoose.Types.ObjectId(req.params.reviewID) },
+articlesRouter.put(
+  "/:id/reviews/:reviewID",
+  jwtAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const modifiedReview = await articlesModel.findOneAndUpdate(
+        {
+          _id: mongoose.Types.ObjectId(req.params.id),
+          "reviews._id": mongoose.Types.ObjectId(req.params.reviewID),
         },
-      },
-      {
-        new: true,
+        { $set: { "reviews.$": req.body } }, // $<-- THIS IS A PLACEHOLDER FOR INDEX IN ARRAYS; The concept of the $ is pretty similar as having something like const $ = array.findIndex(el => el._id === req.params.reviewID)
+        {
+          runValidators: true,
+          new: true,
+        }
+      );
+
+      if (modifiedReview) {
+        res.status(200).send(modifiedReview);
+      } else {
+        const error = new Error();
+        error.statusCode = 400;
+        next(error);
       }
-    )
-    res.status(204).send()
-  } catch (error) {
-    console.log(error);
-    next(error);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
   }
-});
+);
+//DELETE review
+articlesRouter.delete(
+  "/:id/reviews/:reviewID",
+  jwtAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const modifiedArticle = await articlesModel.findByIdAndUpdate(
+        req.params.id,
+        {
+          $pull: {
+            reviews: { _id: mongoose.Types.ObjectId(req.params.reviewID) },
+          },
+        },
+        {
+          new: true,
+        }
+      );
+      res.status(204).send();
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+);
 
 export default articlesRouter;

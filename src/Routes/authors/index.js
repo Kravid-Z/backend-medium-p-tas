@@ -2,6 +2,7 @@ import express from "express";
 import q2m from "query-to-mongo";
 import mongoose from "mongoose";
 import AuthorsModel from "./authors-schema.js";
+import { jwtAuthMiddleware} from "../../Common/auth/index.js"
 
 // const cloudinaryStorage = new CloudinaryStorage({
 //     cloudinary: v2,
@@ -16,7 +17,7 @@ const authorsRouter = express.Router();
 //  AUTHORS ROUTES *******-------->>>>*<<<<--------******
 
 //GET all authors
-authorsRouter.get("/", async (req, res, next) => {
+authorsRouter.get("/", jwtAuthMiddleware , async (req, res, next) => {
   try {
     const authors = await AuthorsModel.find().populate("articles");
     res.status(200).send(authors);
@@ -25,7 +26,7 @@ authorsRouter.get("/", async (req, res, next) => {
   }
 });
 //GET author BY ID
-authorsRouter.get("/:id", async (req, res, next) => {
+authorsRouter.get("/:id", jwtAuthMiddleware , async (req, res, next) => {
   try {
     const author = await AuthorsModel.findById(req.params.id);
     if (author) {
@@ -42,7 +43,7 @@ authorsRouter.get("/:id", async (req, res, next) => {
 });
 
 //POST new author
-authorsRouter.post("/", async (req, res, next) => {
+authorsRouter.post("/", jwtAuthMiddleware , async (req, res, next) => {
   try {
     const newAuthor = new AuthorsModel(req.body);
     const { _id } = await newAuthor.save();
@@ -54,7 +55,7 @@ authorsRouter.post("/", async (req, res, next) => {
 });
 
 //POST IMG for Author
-authorsRouter.post("/upload", async (req, res, next) => {
+authorsRouter.post("/upload", jwtAuthMiddleware , async (req, res, next) => {
   // try {
   //   const newAuthor = new AuthorsModel(req.body)
   //   const { _id } = await newAuthor.save()
@@ -65,7 +66,7 @@ authorsRouter.post("/upload", async (req, res, next) => {
 });
 
 //PUT edit author
-authorsRouter.put("/:id", async (req, res, next) => {
+authorsRouter.put("/:id", jwtAuthMiddleware , async (req, res, next) => {
   try {
     const author = await AuthorsModel.findByIdAndUpdate(
       req.params.id,
@@ -88,7 +89,7 @@ authorsRouter.put("/:id", async (req, res, next) => {
 });
 
 //DELETE author
-authorsRouter.delete("/:id", async (req, res, next) => {
+authorsRouter.delete("/:id", jwtAuthMiddleware , async (req, res, next) => {
   try {
     const author = await AuthorsModel.findByIdAndDelete(req.params.id);
     if (author) {
