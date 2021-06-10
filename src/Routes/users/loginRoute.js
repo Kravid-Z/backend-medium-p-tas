@@ -1,7 +1,8 @@
 import express from "express";
 import UserModel from "../users/userModel.js";
 import { authenticate, refreshToken } from "../../Common/auth/tools.js";
-import { jwtAuthMiddleware } from "../../Common/auth/index";
+import { jwtAuthMiddleware } from "../../Common/auth/index.js";
+import passport from "passport";
 
 const loginRouter = express.Router();
 

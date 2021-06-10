@@ -4,8 +4,8 @@ import mongoose from "mongoose";
 import mainRouter from "./Routes/index.js";
 import cors from "cors";
 import passport from "passport";
-import oauth from "./auth/oauth.js";
-// import cookieParser from "cookie-parser"
+import oauth from "./Common/auth/oauth.js";
+import cookieParser from "cookie-parser";
 import {
   notFoundErrorHandler,
   badRequestErrorHandler,
