@@ -3,6 +3,8 @@ import UserModel from "./userModel.js"
 
 const registerRoute = express.Router()
 
+
+
 registerRoute.post("/", async (req, res, next) => {
   try {
     const newUser = new UserModel(req.body)
@@ -13,5 +15,7 @@ registerRoute.post("/", async (req, res, next) => {
     next(error)
   }
 })
+
+
 
 export default registerRoute

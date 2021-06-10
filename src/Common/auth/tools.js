@@ -54,25 +54,50 @@ const verifyRefreshToken = (token) =>
   );
 
 export const refreshToken = async (oldRefreshToken) => {
-  const decoded = await verifyRefreshToken(oldRefreshToken);
+//JWT VERSION WITH OUT OAUTH!
+    //   const decoded = await verifyRefreshToken(oldRefreshToken);
 
-  const user = await User.findOne({ _id: decoded._id });
+//   const user = await User.findOne({ _id: decoded._id });
 
-  if (!user) {
-    throw new Error("Access is forbidden");
-  }
+//   if (!user) {
+//     throw new Error("Access is forbidden");
+//   }
 
-  const currentRefreshToken = user.refreshToken;
+//   const currentRefreshToken = user.refreshToken;
 
-  if (currentRefreshToken !== oldRefreshToken) {
-    throw new Error("Refresh token is wrong");
-  }
+//   if (currentRefreshToken !== oldRefreshToken) {
+//     throw new Error("Refresh token is wrong");
+//   }
 
-  const newAccessToken = await generateJWT({ _id: user._id });
-  const newRefreshToken = await generateRefreshJWT({ _id: user._id });
+//   const newAccessToken = await generateJWT({ _id: user._id });
+//   const newRefreshToken = await generateRefreshJWT({ _id: user._id });
 
-  user.refreshToken = newRefreshToken;
-  await user.save();
+//   user.refreshToken = newRefreshToken;
+//   await user.save();
 
-  return { token: newAccessToken, refreshToken: newRefreshToken };
+//   return { token: newAccessToken, refreshToken: newRefreshToken };
+  // 1. is the token expired or not valid?
+
+  const content = await verifyRefreshToken(oldRefreshToken)
+
+  // 2. if the token is valid we can move on with the refresh token flow
+
+  const user = await UserModel.findById(content._id)
+
+  if (!user) throw new Error("Token not valid!")
+
+  if (user.refreshToken !== oldRefreshToken) throw new Error("Token not valid!")
+
+  // 3. if everything is fine we need to generate a new pair of tokens
+
+  const newAccessToken = await generateJWT({ _id: user._id })
+  const newRefreshToken = await generateRefreshJWT({ _id: user._id })
+
+  // 4. save new refresh token in db
+
+  user.refreshToken = newRefreshToken
+
+  await user.save()
+
+  return { newAccessToken, newRefreshToken }
 };
